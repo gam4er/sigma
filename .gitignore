@@ -99,8 +99,13 @@ settings.json
 .vs/
 .vscode/launch.json
 
+# .NET tools
+tools/**/bin/
+tools/**/obj/
+
 # sigma2attack
 heatmap.json
 
 # VS Code workspace settings
 .vscode/
+/docs

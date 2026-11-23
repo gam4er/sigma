@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Sigma Detection Logic Changes</title>
+  <style>
+    body {
+      margin: 20px;
+      color: #111;
+      background: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    h1,
+    h2 {
+      margin: 0 0 12px;
+    }
+
+    h2 {
+      margin-top: 28px;
+    }
+
+    .parameters {
+      margin: 0 0 20px;
+      padding-left: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin-bottom: 24px;
+    }
+
+    th,
+    td {
+      border: 1px solid #c8c8c8;
+      padding: 10px;
+      vertical-align: top;
+      max-width: 100%;
+      overflow-wrap: break-word;
+    }
+
+    th {
+      background: #f2f2f2;
+      text-align: left;
+    }
+
+    th:first-child,
+    td:first-child {
+      width: 32%;
+    }
+
+    th:last-child,
+    td:last-child {
+      width: 68%;
+    }
+
+    .meta-line {
+      margin: 0 0 5px;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+
+    .label {
+      font-weight: 700;
+    }
+
+    code,
+    pre {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+    }
+
+    code {
+      background: #f7f7f7;
+      border: 1px solid #e0e0e0;
+      padding: 1px 3px;
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+
+    pre {
+      margin: 8px 0 0;
+      padding: 10px;
+      background: #fafafa;
+      border: 1px solid #d8d8d8;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      line-height: 1.35;
+    }
+
+    pre code {
+      display: block;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      overflow-wrap: inherit;
+      white-space: inherit;
+    }
+
+    .summary,
+    .note {
+      margin: 0 0 8px;
+    }
+
+    .detection-heading {
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sigma Detection Logic Changes</h1>
+  <p>Документ сгенерирован автоматически из истории Git и сфокусирован на новых или изменённых секциях detection.</p>
+
+  <h2>Параметры</h2>
+  <ul class="parameters">
+    <li>Репозиторий: <code>{{ repo_path }}</code></li>
+    <li>Диапазон: <code>{{ range }}</code></li>
+    <li>Верхний коммит анализа: <a href="{{ traversal_commit_url }}"><code>{{ traversal_commit_short_sha }}</code></a></li>
+    <li>Сгенерировано: <code>{{ generated_at }}</code></li>
+    <li>OpenAI-резюме: <code>{{ open_ai_summary_status }}</code></li>
+    <li>Include modified: <code>{{ include_modified }}</code></li>
+    <li>Include unsupported: <code>{{ include_unsupported }}</code></li>
+    {{ if has_max_detection_lines }}
+    <li>Max detection lines: <code>{{ max_detection_lines }}</code></li>
+    {{ end }}
+  </ul>
+
+  {{ for table in tables }}
+  <h2>{{ table.title }}</h2>
+  {{ if !table.has_entries }}
+  <p>Нет строк для выбранного диапазона.</p>
+  {{ else }}
+  <table>
+    <thead>
+      <tr>
+        <th>Коммит и файлы</th>
+        <th>Что изменилось</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ for entry in table.entries }}
+      <tr>
+        <td>
+          <div class="meta-line"><strong>{{ entry.commit_date }}</strong></div>
+          <div class="meta-line">
+            {{ if entry.pull_request_url != null }}
+            PR <a href="{{ entry.pull_request_url }}">#{{ entry.pr_number }}</a>,
+            {{ end }}
+            commit <a href="{{ entry.commit_url }}">{{ entry.short_sha }}</a>
+          </div>
+          <div class="meta-line">{{ entry.subject }}</div>
+          <div class="meta-line"><span class="label">{{ entry.kind_label }}:</span> <code>{{ entry.path }}</code></div>
+          {{ if entry.old_path != null }}
+          <div class="meta-line">Old path: <code>{{ entry.old_path }}</code></div>
+          {{ end }}
+          {{ if entry.title != null }}
+          <div class="meta-line">Title: {{ entry.title }}</div>
+          {{ end }}
+          {{ if entry.logsource != null }}
+          <div class="meta-line">Logsource: <code>{{ entry.logsource }}</code></div>
+          {{ end }}
+          {{ if entry.level != null }}
+          <div class="meta-line">Level: <code>{{ entry.level }}</code></div>
+          {{ end }}
+          {{ if entry.tags != null }}
+          <div class="meta-line">Tags: <code>{{ entry.tags }}</code></div>
+          {{ end }}
+        </td>
+        <td>
+          {{ if entry.russian_summary != null }}
+          <p class="summary"><span class="label">Кратко:</span> {{ entry.russian_summary }}</p>
+          {{ end }}
+          <p class="note"><em>{{ entry.change_note }}</em>{{ if entry.is_truncated }} <em>Логика обрезана по --max-detection-lines.</em>{{ end }}</p>
+          <pre><code>{{ entry.logic }}</code></pre>
+          {{ if entry.current_detection != null }}
+          <p class="note detection-heading"><span class="label">Актуальная секция detection:</span>{{ if entry.is_current_detection_truncated }} <em>Секция обрезана по --max-detection-lines.</em>{{ end }}</p>
+          <pre><code>{{ entry.current_detection }}</code></pre>
+          {{ else if entry.is_current_detection_unavailable }}
+          <p class="note"><em>Актуальная секция detection отсутствует: правило или блок удалён.</em></p>
+          {{ end }}
+        </td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+  {{ end }}
+  {{ end }}
+</body>
+</html>
